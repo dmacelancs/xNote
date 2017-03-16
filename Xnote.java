@@ -1,7 +1,11 @@
 import java.lang.*;
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.*;
-import java.util.regex.*; 
+import java.util.regex.*;
+import org.apache.poi.*;
+import org.apache.poi.xwpf.usermodel.*;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTStyle;
 
 public class Xnote{
 
@@ -9,7 +13,9 @@ public class Xnote{
 	private String outputFilePath = ""; // XNote file output path
 	private String endFile = ""; // File to print to HTML at end 
 	private static final String ANSI_RESET = "\u001b[0m"; // ANSI RESET \ Both for console
-	private static final String ANSI_CYAN = "\u001b[36m"; // ANSI CYAN  / output colours 
+	private static final String ANSI_CYAN = "\u001b[36m"; // ANSI CYAN  / output colours
+
+	private XWPFDocument outputDocX = new XWPFDocument(new FileInputStream("style-template.docx")); // Word document to output
 
 	public Xnote(String xnoteFilePath, String outputFilePath) throws Exception{
 
@@ -21,28 +27,27 @@ public class Xnote{
 		sendOutput("xnote", "will open file: " + xnoteFilePath);
 
 		// Parse the file
-		parseFile(); 
+		parseFile();
 
-		// Print the HTML
-		printHTML(); 
+		// Clean file?
+		outputDocX.removeBodyElement(0); // Remove 1st para - stuck from template...
+
+        // Ouput WORD
+        outputWord();
 	}
 
-	/**
-		* print output to HTML file
+	/*
+		* output a word document
 	*/
-	public void printHTML() throws Exception{
+	public void outputWord() throws Exception{
 
-		// Header and footer of HTML file (CSS ETC.)
-		String header = "<!DOCTYPE HTML><html><head><link rel='stylesheet' href='http://bootswatch.com/journal/bootstrap.min.css' /><title>eNote Output</title></head><style>img{ max-width: 100%; vertical-align: middle; }</style><body><div class='container'>";
-		String footer ="</div></body></html>";
+        // Write the document to the filesystem
+        FileOutputStream out = new FileOutputStream(new File(outputFilePath));
+        outputDocX.write(out);
+        out.close();
 
-		// Place compiled xNote file into HTML file
-		PrintWriter output = new PrintWriter(outputFilePath);
-		output.println(header + endFile + footer); 
-		output.close(); 
-
-		// Print status message
-		sendOutput("xnote", "file has been output: " + xnoteFilePath + ".html");
+        // Print status message
+        sendOutput("xnote", "written word document: " + outputFilePath);
 	}
 
 	/**
@@ -57,62 +62,52 @@ public class Xnote{
 		int tabCount = 0;
 		while((line = fileIn.readLine()) != null){
 
-			// Split line into array
-			char[] chars = line.toCharArray(); 
+			// Create a new paragraph
+			XWPFParagraph para = outputDocX.createParagraph();
+			XWPFRun run = para.createRun();
 
-			// Current line tab counter
-			int p = 0;
+			// Pattern Matching
+			Pattern pat;
+			Matcher match;
 
-			// Run though each line char by char 
-			if(chars.length > 0){
-
-				//CHECK TABS 
-				while(chars[p] == '\t')
-					p++; 
-
-				// ul start?  
-				if(tabCount < p)
-					endFile += "<ul>"; 
-
-				// ul end? 
-				if(tabCount > p)
-					for(int t = 0; t < (tabCount - p); t++)
-						endFile += "</ul>"; 
+			// CHECK FOR HEADING 1
+			pat = Pattern.compile("^##(.{0,})");
+			match = pat.matcher(line);
+			if (match.find()){
+				line = line.replace(match.group(0), match.group(1));
+				para.setStyle("Heading1");
 			}
 
-			// Pattern Matching 
-			Pattern pat; 
-			Matcher match; 
-
-			// CHECK FOR HEADNIG 1
-			pat = Pattern.compile("##(.{0,})");
-			match = pat.matcher(line);
-			if (match.find())
-				line = line.replace(match.group(0), "<h1>" + match.group(1) + "</h1>");
-
 			// CHECK FOR HEADNIG 2
-			pat = Pattern.compile("_(.{0,})");
+			pat = Pattern.compile("^_(.{0,})");
 			match = pat.matcher(line);
-			if (match.find())
-				line = line.replace(match.group(0), "<h2>" + match.group(1) + "</h2>");
+			if (match.find()) {
+				line = line.replace(match.group(0), match.group(1));
+				para.setStyle("Heading2");
+			}
 
 			// CHECK FOR LIST ITEMS
-			pat = Pattern.compile("^\t+-(.{0,})");
+			pat = Pattern.compile("^\t+- (.{0,})");
 			match = pat.matcher(line);
-			if (match.find())
-				line = line.replace(match.group(0), "<li>" + match.group(1) + "</li>");
+			if (match.find()) {
 
-			// CHECK FOR IMAGES...
-			pat = Pattern.compile("img:(.{0,});");
-			match = pat.matcher(line);
-			if (match.find())
-				line = line.replace(match.group(0), "<img src='" + match.group(1) + "' />");
+				// CHECK TABS FROM LEFT...
+				char[] chars = line.toCharArray();
+				int p = 0;
+				while(chars[p] == '\t')
+					p++;
 
-			// Add to end file output
-			endFile = endFile + line + "\n"; 
+				line = line.replace(match.group(0), match.group(1));
 
-			// Set tab count
-			tabCount = p; 
+				para.setStyle("ListParagraph"); // Set style to list paragraph
+				para.setNumID(BigInteger.valueOf(4)); // Set NumID to bullets ?
+				if(p>1)
+					para.getCTP().getPPr().getNumPr().addNewIlvl().setVal(BigInteger.valueOf((p-1))); // Set level?
+
+			}
+
+			// Set run text
+			run.setText(line);
 		}
 
 		// Close file
