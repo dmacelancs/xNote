@@ -1,6 +1,5 @@
 # xNote
-I couldn't be arsed typing up notes in word, so I made this. 
 
-Run: java Driver *FILENAME.XNOTE* *OUTPUT.HTML*
+I was spending too much time formatting documents so I spent more time making this instead.
 
-End goal is to have PDF generation rather than HTML (possibly 2 modes??)
+Uses Apache POI to generate XML docx files. 
