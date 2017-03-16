@@ -16,7 +16,7 @@ public class Xnote{
 		this.xnoteFilePath = xnoteFilePath; 
 
 		// Print init message
-		sendOutput("enote", "will open file: " + xnoteFilePath);
+		sendOutput("xnote", "will open file: " + xnoteFilePath);
 
 		// Parse the file
 		parseFile(); 
