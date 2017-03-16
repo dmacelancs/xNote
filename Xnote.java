@@ -15,7 +15,8 @@ public class Xnote{
 	private static final String ANSI_RESET = "\u001b[0m"; // ANSI RESET \ Both for console
 	private static final String ANSI_CYAN = "\u001b[36m"; // ANSI CYAN  / output colours
 
-	private XWPFDocument outputDocX = new XWPFDocument(new FileInputStream("style-template.docx")); // Word document to output
+	//private XWPFDocument outputDocX = new XWPFDocument(new FileInputStream("style-template.docx")); // Word document to output
+	private XWPFDocument outputDocX = new XWPFDocument(getClass().getResourceAsStream("style-template.docx")); // Word document to output
 
 	public Xnote(String xnoteFilePath, String outputFilePath) throws Exception{
 

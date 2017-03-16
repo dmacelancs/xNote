@@ -13,3 +13,8 @@ Compile & Run, Windows:
 ```
 javac -cp lib/*;. *.java && java -cp lib/*;. Driver sample.xnote sample.docx
 ```
+
+Run, with JAR File:
+```
+java -jar xNote.jar sample.xnote sample.docx
+```
