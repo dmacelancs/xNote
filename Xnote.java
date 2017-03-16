@@ -5,15 +5,17 @@ import java.util.regex.*;
 
 public class Xnote{
 
-	private String xnoteFilePath = ""; // Enote file path 
+	private String xnoteFilePath = ""; // XNote file path 
+	private String outputFilePath = ""; // XNote file output path
 	private String endFile = ""; // File to print to HTML at end 
 	private static final String ANSI_RESET = "\u001b[0m"; // ANSI RESET \ Both for console
 	private static final String ANSI_CYAN = "\u001b[36m"; // ANSI CYAN  / output colours 
 
-	public Xnote(String xnoteFilePath) throws Exception{
+	public Xnote(String xnoteFilePath, String outputFilePath) throws Exception{
 
 		// Initalise 
 		this.xnoteFilePath = xnoteFilePath; 
+		this.outputFilePath = outputFilePath; 
 
 		// Print init message
 		sendOutput("xnote", "will open file: " + xnoteFilePath);
@@ -35,7 +37,7 @@ public class Xnote{
 		String footer ="</div></body></html>";
 
 		// Place compiled xNote file into HTML file
-		PrintWriter output = new PrintWriter(xnoteFilePath + ".html");
+		PrintWriter output = new PrintWriter(outputFilePath);
 		output.println(header + endFile + footer); 
 		output.close(); 
 
