@@ -4,7 +4,7 @@ public class Driver{
 
 		try{
 
-			Xnote xnote = new Xnote("sample.xnote"); 
+			Xnote xnote = new Xnote(args[0]); 
 		} catch(Exception e){
 
 			e.printStackTrace(); // Print the exception
