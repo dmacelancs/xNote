@@ -7,10 +7,10 @@ public class Xnote{
 
 	private String xnoteFilePath = ""; // Enote file path 
 	private String endFile = ""; // File to print to HTML at end 
-	private static final String ANSI_RESET = "\u001b[0m"; // ANSI RESET
-	private static final String ANSI_CYAN = "\u001b[36m"; // ANSI CYAN
+	private static final String ANSI_RESET = "\u001b[0m"; // ANSI RESET \ Both for console
+	private static final String ANSI_CYAN = "\u001b[36m"; // ANSI CYAN  / output colours 
 
-	public Xnote(String xnoteFilePath){
+	public Xnote(String xnoteFilePath) throws Exception{
 
 		// Initalise 
 		this.xnoteFilePath = xnoteFilePath; 
@@ -18,25 +18,11 @@ public class Xnote{
 		// Print init message
 		sendOutput("enote", "will open file: " + xnoteFilePath);
 
-		// Parse the file and output HTML
-		try{
+		// Parse the file
+		parseFile(); 
 
-			// Parse the file
-			parseFile(); 
-			
-			// Print status message
-			sendOutput("xnote", "file has been parsed: " + xnoteFilePath);
-
-			// Print the HTML
-			printHTML(); 
-
-			// Print status message
-			sendOutput("xnote", "file has been output: " + xnoteFilePath + ".html");
-
-		} catch(Exception e){
-
-			e.printStackTrace(); 
-		}
+		// Print the HTML
+		printHTML(); 
 	}
 
 	/**
@@ -44,12 +30,17 @@ public class Xnote{
 	*/
 	public void printHTML() throws Exception{
 
+		// Header and footer of HTML file (CSS ETC.)
 		String header = "<!DOCTYPE HTML><html><head><link rel='stylesheet' href='http://bootswatch.com/journal/bootstrap.min.css' /><title>eNote Output</title></head><style>img{ max-width: 100%; vertical-align: middle; }</style><body><div class='container'>";
 		String footer ="</div></body></html>";
 
+		// Place compiled xNote file into HTML file
 		PrintWriter output = new PrintWriter(xnoteFilePath + ".html");
 		output.println(header + endFile + footer); 
 		output.close(); 
+
+		// Print status message
+		sendOutput("xnote", "file has been output: " + xnoteFilePath + ".html");
 	}
 
 	/**
@@ -68,65 +59,65 @@ public class Xnote{
 			char[] chars = line.toCharArray(); 
 
 			// Current line tab counter
-			int p = 0;	
+			int p = 0;
 
 			// Run though each line char by char 
 			if(chars.length > 0){
 
 				//CHECK TABS 
-				while(chars[p] == '\t'){
+				while(chars[p] == '\t')
 					p++; 
-				}
 
 				// ul start?  
-				if(tabCount < p){
+				if(tabCount < p)
 					endFile += "<ul>"; 
-				}
 
 				// ul end? 
-				if(tabCount > p){
-					for(int t = 0; t < (tabCount - p); t++){
+				if(tabCount > p)
+					for(int t = 0; t < (tabCount - p); t++)
 						endFile += "</ul>"; 
-					}
-				}
 			}
 
+			// Pattern Matching 
+			Pattern pat; 
+			Matcher match; 
+
 			// CHECK FOR HEADNIG 1
-			Pattern patH1 = Pattern.compile("##(.{0,})");
-			Matcher mH1 = patH1.matcher(line);
-			if (mH1.find())
-				line = line.replace(mH1.group(0), "<h1>" + mH1.group(1) + "</h1>");
+			pat = Pattern.compile("##(.{0,})");
+			match = pat.matcher(line);
+			if (match.find())
+				line = line.replace(match.group(0), "<h1>" + match.group(1) + "</h1>");
 
 			// CHECK FOR HEADNIG 2
-			Pattern patH2 = Pattern.compile("_(.{0,})");
-			Matcher mH2 = patH2.matcher(line);
-			if (mH2.find())
-				line = line.replace(mH2.group(0), "<h2>" + mH2.group(1) + "</h2>");
+			pat = Pattern.compile("_(.{0,})");
+			match = pat.matcher(line);
+			if (match.find())
+				line = line.replace(match.group(0), "<h2>" + match.group(1) + "</h2>");
 
 			// CHECK FOR LIST ITEMS
-			Pattern patLI = Pattern.compile("^\t+-(.{0,})");
-			Matcher mLI = patLI.matcher(line);
-			if (mLI.find())
-				line = line.replace(mLI.group(0), "<li>" + mLI.group(1) + "</li>");
+			pat = Pattern.compile("^\t+-(.{0,})");
+			match = pat.matcher(line);
+			if (match.find())
+				line = line.replace(match.group(0), "<li>" + match.group(1) + "</li>");
 
 			// CHECK FOR IMAGES...
-			Pattern pat = Pattern.compile("img:(.{0,});");
-			Matcher m = pat.matcher(line);
-			if (m.find())
-				line = line.replace(m.group(0), "<img src='" + m.group(1) + "' />");
+			pat = Pattern.compile("img:(.{0,});");
+			match = pat.matcher(line);
+			if (match.find())
+				line = line.replace(match.group(0), "<img src='" + match.group(1) + "' />");
 
-			// Add to end file
+			// Add to end file output
 			endFile = endFile + line + "\n"; 
 
 			// Set tab count
 			tabCount = p; 
-
-			// Print the line to console
-			// System.out.println(line);
 		}
 
 		// Close file
 		fileIn.close(); 
+
+		// Print status message
+		sendOutput("xnote", "file has been parsed: " + xnoteFilePath);
 	}
 
 	/**

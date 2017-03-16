@@ -2,6 +2,12 @@ public class Driver{
 
 	public static void main(String args[]){
 
-		Xnote xnote = new Xnote("sample.xnote"); 
+		try{
+
+			Xnote xnote = new Xnote("sample.xnote"); 
+		} catch(Exception e){
+
+			e.printStackTrace(); // Print the exception
+		}
 	}
 }
